@@ -52,7 +52,7 @@ const ConnectServices: React.FC = () => {
   }, []);
 
   const handleConnectSpotify = () => {
-    // Redirect to Spotify OAuth flow
+    // Fall back to using the NextAuth endpoint if client ID is not available
     router.push('/api/auth/signin/spotify');
   };
 

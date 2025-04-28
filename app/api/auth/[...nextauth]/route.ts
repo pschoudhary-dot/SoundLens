@@ -14,12 +14,41 @@ const scopes = [
 
 // Log environment variables for debugging
 console.log('Environment Variables:');
+// Debug environment variables
+console.log('🔍 CHECKING ENVIRONMENT VARIABLES:');
 console.log('SPOTIFY_CLIENT_ID:', process.env.SPOTIFY_CLIENT_ID ? '✓ Set' : '✗ Missing');
 console.log('SPOTIFY_CLIENT_SECRET:', process.env.SPOTIFY_CLIENT_SECRET ? '✓ Set' : '✗ Missing');
 console.log('SPOTIFY_REDIRECT_URI:', process.env.SPOTIFY_REDIRECT_URI);
 console.log('NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
 console.log('NEXTAUTH_SECRET:', process.env.NEXTAUTH_SECRET ? '✓ Set' : '✗ Missing');
 console.log('MONGODB_URI:', process.env.MONGODB_URI ? '✓ Set' : '✗ Missing');
+
+// Validate Spotify redirect URI
+if (process.env.SPOTIFY_REDIRECT_URI) {
+  try {
+    const redirectUrl = new URL(process.env.SPOTIFY_REDIRECT_URI);
+    console.log('✅ SPOTIFY_REDIRECT_URI is a valid URL:', redirectUrl.toString());
+
+    // Check if the redirect URI matches the expected format
+    if (!redirectUrl.pathname.includes('/api/auth/callback/spotify')) {
+      console.warn('⚠️ SPOTIFY_REDIRECT_URI may not be correct. Expected path to include: /api/auth/callback/spotify');
+    }
+
+    // Check if the hostname matches NEXTAUTH_URL
+    if (process.env.NEXTAUTH_URL) {
+      const nextAuthUrl = new URL(process.env.NEXTAUTH_URL);
+      if (redirectUrl.hostname !== nextAuthUrl.hostname) {
+        console.warn('⚠️ SPOTIFY_REDIRECT_URI hostname does not match NEXTAUTH_URL hostname');
+        console.warn(`   SPOTIFY_REDIRECT_URI: ${redirectUrl.hostname}`);
+        console.warn(`   NEXTAUTH_URL: ${nextAuthUrl.hostname}`);
+      }
+    }
+  } catch (error) {
+    console.error('❌ SPOTIFY_REDIRECT_URI is not a valid URL:', process.env.SPOTIFY_REDIRECT_URI);
+  }
+} else {
+  console.error('❌ SPOTIFY_REDIRECT_URI is not set');
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
@@ -30,79 +59,188 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         params: {
           scope: scopes,
-          redirect_uri: process.env.SPOTIFY_REDIRECT_URI
+          redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+          show_dialog: true // Force the user to approve the app again
+        }
+      },
+      profile(profile) {
+        return {
+          id: profile.id,
+          name: profile.display_name,
+          email: profile.email,
+          image: profile.images?.[0]?.url
         }
       }
     }),
   ],
   debug: true, // Enable debug mode for more detailed logs
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile, email, credentials }) {
+      console.log('🔍 SIGNIN CALLBACK TRIGGERED', {
+        hasUser: !!user,
+        hasAccount: !!account,
+        hasProfile: !!profile,
+        accountProvider: account?.provider,
+        profileId: profile ? (profile as any).id : null,
+        userId: user?.id
+      });
+
       try {
         if (account?.provider === 'spotify' && profile) {
-          // Connect to the database
-          await dbConnect();
+          console.log('🎵 Spotify authentication detected');
 
-          // Update the user with Spotify ID and set spotifyConnected to true
-          await User.findByIdAndUpdate(
-            user.id,
-            {
-              spotifyId: (profile as any).id,
-              spotifyConnected: true
-            },
-            { new: true }
-          );
+          // Connect to the database
+          console.log('📊 Connecting to database...');
+          await dbConnect();
+          console.log('📊 Database connection successful');
+
+          // Check if user exists and has an ID
+          if (!user || !user.id) {
+            console.error('❌ User object is missing or has no ID:', user);
+            return true; // Still allow sign in, but log the error
+          }
+
+          console.log(`👤 Updating user with ID: ${user.id}`);
+
+          try {
+            // Update the user with Spotify ID and set spotifyConnected to true
+            const updatedUser = await User.findByIdAndUpdate(
+              user.id,
+              {
+                spotifyId: (profile as any).id,
+                spotifyConnected: true
+              },
+              { new: true }
+            );
+
+            if (!updatedUser) {
+              console.error('❌ User not found in database with ID:', user.id);
+            }
+          } catch (dbError) {
+            console.error('❌ Database error when updating user:', dbError);
+            // Still allow sign in even if database update fails
+          }
+
+          console.log('✅ Spotify authentication processed');
 
           // Update localStorage on client side will be handled by the ConnectServices component
+        } else {
+          console.log('⚠️ Not a Spotify authentication or missing profile data');
         }
         return true;
       } catch (error) {
-        console.error('Error in signIn callback:', error);
+        console.error('❌ ERROR in signIn callback:', error);
+        // Log more details about the error
+        if (error instanceof Error) {
+          console.error('Error message:', error.message);
+          console.error('Error stack:', error.stack);
+        }
         return true; // Still allow sign in even if update fails
       }
     },
     async jwt({ token, account, user }) {
+      console.log('🔑 JWT CALLBACK TRIGGERED', {
+        hasToken: !!token,
+        hasAccount: !!account,
+        hasUser: !!user,
+        tokenKeys: token ? Object.keys(token) : [],
+        tokenError: token?.error || 'none'
+      });
+
       try {
         // Initial sign in
         if (account) {
-          console.log('JWT callback - initial sign in with account:', {
+          console.log('🔑 JWT callback - initial sign in with account:', {
+            provider: account.provider,
+            type: account.type,
             access_token: !!account.access_token,
             refresh_token: !!account.refresh_token,
-            expires_at: account.expires_at
+            expires_at: account.expires_at,
+            token_type: account.token_type,
+            scope: account.scope
           });
 
           // If we have the user object, add it to the token
           if (user) {
+            console.log('👤 Adding user ID to token:', user.id);
             token.userId = user.id;
+          } else {
+            console.log('⚠️ No user object available in JWT callback');
           }
 
-          return {
+          const newToken = {
             ...token,
             accessToken: account.access_token,
             refreshToken: account.refresh_token,
             accessTokenExpires: account.expires_at ? account.expires_at * 1000 : 0,
+            provider: account.provider
           };
+
+          console.log('🔑 New token created with keys:', Object.keys(newToken));
+          return newToken;
         }
 
         // Return previous token if the access token has not expired yet
         if (token.accessTokenExpires && Date.now() < (token.accessTokenExpires as number)) {
+          console.log('🔑 Using existing token (not expired)');
           return token;
         }
 
         // Access token has expired, try to update it
+        console.log('🔄 Token expired, attempting to refresh');
         return refreshAccessToken(token);
       } catch (error) {
-        console.error('Error in JWT callback:', error);
+        console.error('❌ ERROR in JWT callback:', error);
+        // Log more details about the error
+        if (error instanceof Error) {
+          console.error('Error message:', error.message);
+          console.error('Error stack:', error.stack);
+        }
+        console.error('❌ Returning token with error flag');
         return { ...token, error: 'RefreshAccessTokenError' };
       }
     },
-    async session({ session, token }) {
+    async session({ session, token, user }) {
+      console.log('🔄 SESSION CALLBACK TRIGGERED', {
+        hasSession: !!session,
+        hasToken: !!token,
+        hasUser: !!user,
+        tokenKeys: token ? Object.keys(token) : [],
+        sessionKeys: session ? Object.keys(session) : []
+      });
+
       try {
+        // Add properties to the session from the token
         session.accessToken = token.accessToken;
         session.error = token.error;
+
+        // Make sure user object exists
+        if (!session.user) {
+          session.user = {};
+        }
+
+        // Add user ID if available
+        if (token.userId) {
+          // Add to both places for compatibility
+          session.userId = token.userId;
+          session.user.id = token.userId;
+        }
+
+        // Add provider information if available
+        if (token.provider) {
+          session.provider = token.provider;
+        }
+
+        console.log('🔄 Session updated with keys:', Object.keys(session));
         return session;
       } catch (error) {
-        console.error('Error in session callback:', error);
+        console.error('❌ ERROR in session callback:', error);
+        // Log more details about the error
+        if (error instanceof Error) {
+          console.error('Error message:', error.message);
+          console.error('Error stack:', error.stack);
+        }
+        console.error('❌ Returning session with error flag');
         return { ...session, error: 'SessionError' };
       }
     },
@@ -110,7 +248,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/',
     signOut: '/',
-    error: '/',
+    error: '/auth/error',
     newUser: '/connect-services', // Redirect new users to connect services
   },
   session: {
@@ -120,11 +258,17 @@ export const authOptions: NextAuthOptions = {
 };
 
 async function refreshAccessToken(token: any) {
+  console.log('🔄 REFRESH TOKEN FUNCTION CALLED', {
+    hasToken: !!token,
+    hasRefreshToken: !!token?.refreshToken,
+    tokenKeys: token ? Object.keys(token) : []
+  });
+
   try {
-    console.log('Attempting to refresh access token');
+    console.log('🔄 Attempting to refresh access token');
 
     if (!token.refreshToken) {
-      console.error('No refresh token available');
+      console.error('❌ No refresh token available');
       return {
         ...token,
         error: 'NoRefreshTokenError',
@@ -136,7 +280,12 @@ async function refreshAccessToken(token: any) {
       `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
     ).toString('base64');
 
-    console.log('Making refresh token request to Spotify');
+    console.log('🔄 Making refresh token request to Spotify');
+    console.log('🔑 Using Client ID:', process.env.SPOTIFY_CLIENT_ID?.substring(0, 5) + '...');
+
+    // Log the first few characters of the refresh token for debugging
+    const refreshTokenPreview = token.refreshToken.substring(0, 5) + '...';
+    console.log('🔑 Using refresh token:', refreshTokenPreview);
 
     const response = await fetch(url, {
       method: 'POST',
@@ -152,12 +301,23 @@ async function refreshAccessToken(token: any) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Spotify token refresh failed:', response.status, errorText);
+      console.error('❌ Spotify token refresh failed:', response.status, errorText);
+
+      // Log more details about the error
+      console.error('Response status:', response.status);
+      console.error('Response status text:', response.statusText);
+      console.error('Response headers:', Object.fromEntries([...response.headers.entries()]));
+
       throw new Error(`Spotify API error: ${response.status} - ${errorText}`);
     }
 
     const refreshedTokens = await response.json();
-    console.log('Successfully refreshed access token');
+    console.log('✅ Successfully refreshed access token');
+    console.log('🔑 New token expires in:', refreshedTokens.expires_in, 'seconds');
+
+    // Check if we got a new refresh token
+    const gotNewRefreshToken = !!refreshedTokens.refresh_token;
+    console.log('🔑 Received new refresh token:', gotNewRefreshToken);
 
     return {
       ...token,
@@ -166,7 +326,12 @@ async function refreshAccessToken(token: any) {
       refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
     };
   } catch (error) {
-    console.error('Error refreshing access token:', error);
+    console.error('❌ ERROR refreshing access token:', error);
+    // Log more details about the error
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     return {
       ...token,
       error: 'RefreshAccessTokenError',
