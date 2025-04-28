@@ -80,6 +80,7 @@ export const authOptions: NextAuthOptions = {
     signIn: '/',
     signOut: '/',
     error: '/',
+    newUser: '/connect-services', // Redirect new users to connect services
   },
   session: {
     strategy: 'jwt',

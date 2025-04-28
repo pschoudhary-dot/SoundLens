@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
+import ButtonWithSpinner from '@/components/ui/ButtonWithSpinner';
 import {
   Music,
   ChevronRight,
@@ -77,10 +78,10 @@ export default function Home() {
         }}
       ></div>
 
-      {/* Header - with scroll animation */}
+      {/* Header - fully transparent with scroll animation */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          isScrolled ? 'py-3 bg-white/80 backdrop-blur-md shadow-sm' : 'py-4 bg-transparent'
+          isScrolled ? 'py-3 bg-transparent backdrop-blur-sm' : 'py-4 bg-transparent'
         }`}
         style={{
           transform: `translateY(${scrollProgress > 0.8 ? '-100%' : '0'})`,
@@ -88,23 +89,26 @@ export default function Home() {
       >
         <div className="container mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="flex items-center group">
-            <div className="bg-[#3b82f6] rounded-full p-1.5 mr-2 transition-transform group-hover:scale-110">
+            <div className="bg-[#22c55e] rounded-full p-1.5 mr-2 transition-transform group-hover:scale-110">
               <Music size={18} className="text-white" />
             </div>
-            <span className="text-xl font-bold text-[#1e3a8a]">
-              SoundLens
+            <span className="text-xl font-bold text-white">
+              Sound<span className="text-[#22c55e]">Lens</span>
             </span>
           </Link>
 
           <div className="flex items-center space-x-4">
-            <Link href="/login" className="text-[#1e3a8a] hover:text-[#3b82f6] transition-colors text-sm font-medium">
+            <Link href="/login" className="text-white hover:text-black transition-colors text-sm font-medium">
               Log In
             </Link>
-            <Link href="/signup">
-              <Button size="sm" className="px-4 py-1.5 bg-[#22c55e] hover:bg-[#16a34a] text-white text-sm shadow-sm">
-                Sign Up
-              </Button>
-            </Link>
+            <ButtonWithSpinner
+              href="/signup"
+              size="sm"
+              className="px-4 py-1.5 bg-[#22c55e] hover:bg-[#16a34a] text-white text-sm shadow-sm relative overflow-hidden group"
+            >
+              <span className="relative z-10">Sign Up</span>
+              <span className="absolute inset-0 bg-gradient-to-r from-[#22c55e] to-[#16a34a] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            </ButtonWithSpinner>
           </div>
         </div>
       </header>
@@ -121,26 +125,28 @@ export default function Home() {
         >
           <div className="flex flex-col items-center justify-center text-center">
             <div className="relative z-10 max-w-xl mx-auto">
-              {/* Hero content with better visibility */}
-              <div className="bg-white/30 backdrop-blur-md p-8 rounded-3xl shadow-lg">
-                <h1 className="text-5xl md:text-7xl font-bold mb-6">
-                  <span className="text-white drop-shadow-lg">Sound</span>
-                  <span className="text-[#22c55e] drop-shadow-lg">Lens</span>
+              {/* Hero content with dark text that stands out */}
+              <div className="p-8">
+                <h1 className="text-5xl md:text-7xl font-extrabold mb-6 font-sans tracking-tight">
+                  <span className="text-[#111] drop-shadow-[0_2px_2px_rgba(255,255,255,0.5)]">Sound</span>
+                  <span className="text-[#22c55e] drop-shadow-[0_2px_2px_rgba(255,255,255,0.5)]">Lens</span>
                 </h1>
 
-                <p className="text-xl md:text-2xl text-white mb-10 max-w-lg mx-auto leading-relaxed drop-shadow-md font-medium">
+                <p className="text-xl md:text-2xl text-[#111] mb-10 max-w-lg mx-auto leading-relaxed font-medium drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
                   Discover your music identity and unlock insights about your unique listening journey
                 </p>
 
                 <div className="flex justify-center">
-                  <Link href="/signup">
-                    <Button
-                      size="lg"
-                      className="px-8 py-4 text-lg bg-[#22c55e] hover:bg-[#16a34a] text-white shadow-sm rounded-md flex items-center justify-center transition-all"
-                    >
-                      Get Started <ChevronRight size={20} className="ml-2" />
-                    </Button>
-                  </Link>
+                  <ButtonWithSpinner
+                    href="/signup"
+                    className="group relative px-8 py-4 text-lg bg-[#22c55e] text-white font-bold rounded-lg overflow-hidden transition-all duration-300 hover:bg-[#16a34a] hover:shadow-lg flex items-center justify-center"
+                  >
+                    <span className="relative z-10 flex items-center">
+                      Get Started
+                      <ChevronRight size={20} className="ml-2 transition-transform duration-300 group-hover:translate-x-1" />
+                    </span>
+                    <span className="absolute inset-0 bg-gradient-to-r from-[#22c55e] to-[#16a34a] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                  </ButtonWithSpinner>
                 </div>
               </div>
             </div>
@@ -171,16 +177,21 @@ export default function Home() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/signup">
-                    <Button size="lg" className="w-full sm:w-auto px-8 py-3 text-base bg-[#22c55e] hover:bg-[#16a34a] text-white shadow-sm rounded-md flex items-center justify-center">
-                      Get Started <ChevronRight size={18} className="ml-2" />
-                    </Button>
-                  </Link>
-                  <Link href="/login">
-                    <Button size="lg" variant="outline" className="w-full sm:w-auto px-8 py-3 text-base border border-[#3b82f6] text-[#3b82f6] hover:bg-[#3b82f6]/5 rounded-md">
-                      Login with Spotify
-                    </Button>
-                  </Link>
+                  <ButtonWithSpinner
+                    href="/signup"
+                    size="lg"
+                    className="w-full sm:w-auto px-8 py-3 text-base bg-[#22c55e] hover:bg-[#16a34a] text-white shadow-sm rounded-md flex items-center justify-center"
+                  >
+                    Get Started <ChevronRight size={18} className="ml-2" />
+                  </ButtonWithSpinner>
+                  <ButtonWithSpinner
+                    href="/login"
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto px-8 py-3 text-base border border-[#3b82f6] text-[#3b82f6] hover:bg-[#3b82f6]/5 rounded-md"
+                  >
+                    Login with Spotify
+                  </ButtonWithSpinner>
                 </div>
               </div>
             </div>
@@ -375,16 +386,21 @@ export default function Home() {
                 SoundLens is an open-source project and welcomes contributions from developers of all skill levels. Help us build the best music analytics platform!
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <a href="https://github.com/soundlens/soundlens" target="_blank" rel="noopener noreferrer">
-                  <Button size="md" className="px-6 py-2 bg-[#1e293b] hover:bg-[#0f172a] text-white shadow-md flex items-center">
-                    <GithubIcon size={18} className="mr-2" /> View on GitHub
-                  </Button>
-                </a>
-                <a href="https://github.com/soundlens/soundlens/issues/new" target="_blank" rel="noopener noreferrer">
-                  <Button size="md" variant="outline" className="px-6 py-2 border border-[#1e293b] text-[#1e293b] hover:bg-[#1e293b]/5">
-                    Report an Issue
-                  </Button>
-                </a>
+                <ButtonWithSpinner
+                  onClick={() => window.open('https://github.com/soundlens/soundlens', '_blank')}
+                  size="md"
+                  className="px-6 py-2 bg-[#1e293b] hover:bg-[#0f172a] text-white shadow-md flex items-center"
+                >
+                  <GithubIcon size={18} className="mr-2" /> View on GitHub
+                </ButtonWithSpinner>
+                <ButtonWithSpinner
+                  onClick={() => window.open('https://github.com/soundlens/soundlens/issues/new', '_blank')}
+                  size="md"
+                  variant="outline"
+                  className="px-6 py-2 border border-[#1e293b] text-[#1e293b] hover:bg-[#1e293b]/5"
+                >
+                  Report an Issue
+                </ButtonWithSpinner>
               </div>
             </div>
             <div
@@ -437,43 +453,48 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/signup">
-              <Button size="lg" className="px-8 py-3 text-base bg-[#22c55e] hover:bg-[#16a34a] text-white shadow-md">
-                Get Started <ChevronRight size={18} className="ml-2" />
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button size="lg" variant="outline" className="px-8 py-3 text-base border border-[#3b82f6] text-[#3b82f6] hover:bg-[#3b82f6]/5">
-                Login with Spotify
-              </Button>
-            </Link>
+            <ButtonWithSpinner
+              href="/signup"
+              size="lg"
+              className="px-8 py-3 text-base bg-[#22c55e] hover:bg-[#16a34a] text-white shadow-md"
+            >
+              Get Started <ChevronRight size={18} className="ml-2" />
+            </ButtonWithSpinner>
+            <ButtonWithSpinner
+              href="/login"
+              size="lg"
+              variant="outline"
+              className="px-8 py-3 text-base border border-[#3b82f6] text-[#3b82f6] hover:bg-[#3b82f6]/5"
+            >
+              Login with Spotify
+            </ButtonWithSpinner>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-[#e2e8f0] bg-white">
+      <footer className="py-10 px-6 bg-[#111827] text-white">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-6 md:mb-0">
-              <div className="bg-[#3b82f6] rounded-full p-1.5 mr-2">
-                <Music size={16} className="text-white" />
+              <div className="bg-[#22c55e] rounded-full p-2 mr-3">
+                <Music size={18} className="text-white" />
               </div>
-              <span className="text-base font-bold text-[#1e3a8a]">
-                SoundLens
+              <span className="text-xl font-bold text-white">
+                Sound<span className="text-[#22c55e]">Lens</span>
               </span>
             </div>
 
-            <div className="flex flex-wrap justify-center items-center gap-6 mb-6 md:mb-0">
-              <a href="#" className="text-[#1e3a8a]/60 hover:text-[#3b82f6] text-sm transition-colors">Privacy Policy</a>
-              <a href="#" className="text-[#1e3a8a]/60 hover:text-[#3b82f6] text-sm transition-colors">Terms of Service</a>
-              <a href="#" className="text-[#1e3a8a]/60 hover:text-[#3b82f6] text-sm transition-colors">Contact Us</a>
-              <a href="https://github.com/soundlens/soundlens" target="_blank" rel="noopener noreferrer" className="text-[#1e3a8a]/60 hover:text-[#3b82f6] text-sm transition-colors flex items-center">
-                <GithubIcon size={14} className="mr-1" /> GitHub
+            <div className="flex flex-wrap justify-center items-center gap-8 mb-6 md:mb-0">
+              <a href="#" className="text-white/80 hover:text-[#22c55e] text-sm font-medium transition-colors">Privacy Policy</a>
+              <a href="#" className="text-white/80 hover:text-[#22c55e] text-sm font-medium transition-colors">Terms of Service</a>
+              <a href="#" className="text-white/80 hover:text-[#22c55e] text-sm font-medium transition-colors">Contact Us</a>
+              <a href="https://github.com/soundlens/soundlens" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-[#22c55e] text-sm font-medium transition-colors flex items-center">
+                <GithubIcon size={16} className="mr-2" /> GitHub
               </a>
             </div>
 
-            <div className="text-[#1e3a8a]/60 text-xs">
+            <div className="text-white/70 text-sm mt-4 md:mt-0">
               &copy; {new Date().getFullYear()} SoundLens - Open Source Project
             </div>
           </div>
