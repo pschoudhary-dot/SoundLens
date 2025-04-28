@@ -2,6 +2,8 @@ import NextAuth, { NextAuthOptions } from 'next-auth';
 import SpotifyProvider from 'next-auth/providers/spotify';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import clientPromise from '@/lib/mongodb';
+import dbConnect from '@/lib/mongoose';
+import User from '@/models/User';
 
 const scopes = [
   'user-read-email',
@@ -35,7 +37,31 @@ export const authOptions: NextAuthOptions = {
   ],
   debug: true, // Enable debug mode for more detailed logs
   callbacks: {
-    async jwt({ token, account }) {
+    async signIn({ user, account, profile }) {
+      try {
+        if (account?.provider === 'spotify' && profile) {
+          // Connect to the database
+          await dbConnect();
+
+          // Update the user with Spotify ID and set spotifyConnected to true
+          await User.findByIdAndUpdate(
+            user.id,
+            {
+              spotifyId: (profile as any).id,
+              spotifyConnected: true
+            },
+            { new: true }
+          );
+
+          // Update localStorage on client side will be handled by the ConnectServices component
+        }
+        return true;
+      } catch (error) {
+        console.error('Error in signIn callback:', error);
+        return true; // Still allow sign in even if update fails
+      }
+    },
+    async jwt({ token, account, user }) {
       try {
         // Initial sign in
         if (account) {
@@ -44,6 +70,11 @@ export const authOptions: NextAuthOptions = {
             refresh_token: !!account.refresh_token,
             expires_at: account.expires_at
           });
+
+          // If we have the user object, add it to the token
+          if (user) {
+            token.userId = user.id;
+          }
 
           return {
             ...token,

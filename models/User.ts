@@ -32,6 +32,8 @@ export interface IUser extends Document {
   // Connected services
   spotifyConnected?: boolean;
   youtubeConnected?: boolean;
+  spotifyId?: string;
+  youtubeId?: string;
 
   // Account info
   createdAt: Date;
@@ -72,6 +74,8 @@ const UserSchema: Schema = new Schema({
   // Connected services
   spotifyConnected: { type: Boolean, default: false },
   youtubeConnected: { type: Boolean, default: false },
+  spotifyId: { type: String },
+  youtubeId: { type: String },
 
   // Account info
   createdAt: { type: Date, default: Date.now },
