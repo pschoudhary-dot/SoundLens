@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import styles from './OnboardingFlow.module.css';
 import Button from '@/components/ui/Button';
 import PersonalInfoStep from './steps/PersonalInfoStep';
 import MusicPreferencesStep from './steps/MusicPreferencesStep';
@@ -123,12 +124,11 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ userId }) => {
                 {step}
               </div>
             ))}
-          </div>
           <div className="w-full bg-white/20 h-2 rounded-full">
             <div
-              className="bg-accent h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / 4) * 100}%` }}
+              className={`${styles.progressBarFill} ${styles[`step${currentStep}`]} bg-accent`}
             ></div>
+          </div>
           </div>
         </div>
         

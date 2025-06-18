@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Button from "../ui/Button";
 import { Input } from "../ui/input";
 import { Calendar } from "../ui/calendar";
@@ -151,7 +151,6 @@ export default function MusicPreferencesForm({ onSubmit, currentStep }: MusicPre
                       mode="single"
                       selected={date}
                       onSelect={setDate}
-                      initialFocus
                       className="bg-gray-800 text-white"
                     />
                   </PopoverContent>
@@ -261,6 +260,8 @@ export default function MusicPreferencesForm({ onSubmit, currentStep }: MusicPre
                           type="button"
                           onClick={() => handleRemoveArtist(artist)}
                           className="ml-1 text-gray-300 hover:text-white"
+                          aria-label={`Remove ${artist}`}
+                          title={`Remove ${artist}`}
                         >
                           <X className="h-3 w-3" />
                         </button>

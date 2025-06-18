@@ -16,13 +16,15 @@ export default function AuthErrorPage() {
   useEffect(() => {
     // Get all query parameters
     const params: Record<string, string> = {};
-    searchParams.forEach((value, key) => {
-      params[key] = value;
-    });
+    if (searchParams) {
+      searchParams.forEach((value, key) => {
+        params[key] = value;
+      });
+    }
 
     // Get specific error parameters
-    const error = searchParams.get('error') || '';
-    let description = searchParams.get('error_description') || '';
+    const error = searchParams?.get('error') || '';
+    let description = searchParams?.get('error_description') || '';
 
     // If no description is provided, give a default based on the error
     if (!description) {
@@ -37,7 +39,7 @@ export default function AuthErrorPage() {
           description = 'The verification token has expired or has already been used.';
           break;
         case 'spotify':
-          description = 'There was an error authenticating with Spotify. Please check your Spotify credentials and try again.';
+          description = 'There was an error authenticating with Spotify. This could be due to incorrect credentials, expired session, or server configuration issues. Please try again.';
           break;
         default:
           description = 'An unknown error occurred during authentication.';
@@ -68,14 +70,14 @@ export default function AuthErrorPage() {
                 <AlertTriangle size={40} className="text-red-500" />
               </div>
             </div>
-            
+
             <h1 className="text-2xl font-bold text-white text-center mb-2">Authentication Error</h1>
-            
+
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
               <p className="text-red-400 font-medium mb-2">Error: {errorDetails.error || 'Unknown Error'}</p>
               <p className="text-white/70">{errorDetails.description}</p>
             </div>
-            
+
             <div className="bg-gray-800 rounded-lg p-4 mb-6">
               <h3 className="text-white font-medium mb-2">Debugging Information</h3>
               <div className="text-white/60 text-sm">
@@ -84,21 +86,30 @@ export default function AuthErrorPage() {
                 </pre>
               </div>
             </div>
-            
+
             <div className="flex flex-col space-y-3">
-              <Link 
+              <Link
                 href="/"
                 className="flex items-center justify-center py-2 px-4 bg-gray-800 hover:bg-gray-700 text-white rounded-md transition-colors"
               >
                 <ArrowLeft size={16} className="mr-2" /> Return to Home
               </Link>
-              
-              <Link 
+
+              <Link
                 href="/login"
                 className="flex items-center justify-center py-2 px-4 bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-md transition-colors"
               >
-                Try Again
+                Try Again with Email
               </Link>
+
+              {errorDetails.error === 'spotify' && (
+                <Link
+                  href="/api/spotify/auth"
+                  className="flex items-center justify-center py-2 px-4 bg-[#1DB954] hover:bg-[#1AA34A] text-white rounded-md transition-colors"
+                >
+                  Try Again with Spotify
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -10,20 +10,20 @@ interface AdditionalInfoStepProps {
     education: string;
     languages: string[];
   };
-  updateFormData: (data: Partial<typeof formData>) => void;
+  updateFormData: (data: Partial<AdditionalInfoStepProps['formData']>) => void;
 }
 
 const AdditionalInfoStep: React.FC<AdditionalInfoStepProps> = ({ formData, updateFormData }) => {
   const [languageInput, setLanguageInput] = useState('');
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const isCheckbox = type === 'checkbox';
-    
+
     if (isCheckbox) {
       const checkbox = e.target as HTMLInputElement;
       updateFormData({ [name]: checkbox.checked });
-      
+
       // Reset workout frequency if user doesn't go to gym
       if (name === 'goesToGym' && !checkbox.checked) {
         updateFormData({ workoutFrequency: '' });
@@ -32,7 +32,7 @@ const AdditionalInfoStep: React.FC<AdditionalInfoStepProps> = ({ formData, updat
       updateFormData({ [name]: value });
     }
   };
-  
+
   const handleAddLanguage = () => {
     if (languageInput.trim() && !formData.languages.includes(languageInput.trim())) {
       updateFormData({
@@ -41,13 +41,13 @@ const AdditionalInfoStep: React.FC<AdditionalInfoStepProps> = ({ formData, updat
       setLanguageInput('');
     }
   };
-  
+
   const handleRemoveLanguage = (language: string) => {
     updateFormData({
       languages: formData.languages.filter(l => l !== language)
     });
   };
-  
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
@@ -56,7 +56,7 @@ const AdditionalInfoStep: React.FC<AdditionalInfoStepProps> = ({ formData, updat
           Help us understand more about your lifestyle
         </p>
       </div>
-      
+
       <div className="mb-4">
         <label className="flex items-center">
           <input
@@ -69,7 +69,7 @@ const AdditionalInfoStep: React.FC<AdditionalInfoStepProps> = ({ formData, updat
           <span className="ml-3 text-white">I go to the gym/workout regularly</span>
         </label>
       </div>
-      
+
       {formData.goesToGym && (
         <div className="mb-4 ml-8">
           <label htmlFor="workoutFrequency" className="block text-sm font-medium text-white/80 mb-1">
@@ -90,7 +90,7 @@ const AdditionalInfoStep: React.FC<AdditionalInfoStepProps> = ({ formData, updat
           </select>
         </div>
       )}
-      
+
       <div className="mb-4">
         <label htmlFor="occupation" className="block text-sm font-medium text-white/80 mb-1">
           Occupation
@@ -105,7 +105,7 @@ const AdditionalInfoStep: React.FC<AdditionalInfoStepProps> = ({ formData, updat
           className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-accent"
         />
       </div>
-      
+
       <div className="mb-4">
         <label htmlFor="education" className="block text-sm font-medium text-white/80 mb-1">
           Education Level
@@ -126,7 +126,7 @@ const AdditionalInfoStep: React.FC<AdditionalInfoStepProps> = ({ formData, updat
           <option value="other">Other</option>
         </select>
       </div>
-      
+
       <div className="mb-4">
         <label className="block text-sm font-medium text-white/80 mb-1">
           Languages You Speak
@@ -148,7 +148,7 @@ const AdditionalInfoStep: React.FC<AdditionalInfoStepProps> = ({ formData, updat
             Add
           </button>
         </div>
-        
+
         {formData.languages.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
             {formData.languages.map(language => (

@@ -11,19 +11,19 @@ interface ListeningHabitsStepProps {
     listensDuringWork: boolean;
     listensDuringCommute: boolean;
   };
-  updateFormData: (data: Partial<typeof formData>) => void;
+  updateFormData: (data: Partial<ListeningHabitsStepProps['formData']>) => void;
 }
 
 const ListeningHabitsStep: React.FC<ListeningHabitsStepProps> = ({ formData, updateFormData }) => {
   const handleHoursChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     updateFormData({ listenHoursPerDay: e.target.value });
   };
-  
+
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
     updateFormData({ [name]: checked });
   };
-  
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
@@ -32,7 +32,7 @@ const ListeningHabitsStep: React.FC<ListeningHabitsStepProps> = ({ formData, upd
           Tell us when and how you listen to music
         </p>
       </div>
-      
+
       <div className="mb-6">
         <label htmlFor="listenHoursPerDay" className="block text-sm font-medium text-white/80 mb-1">
           How many hours do you listen to music per day?
@@ -52,12 +52,12 @@ const ListeningHabitsStep: React.FC<ListeningHabitsStepProps> = ({ formData, upd
           <option value="more-than-6">More than 6 hours</option>
         </select>
       </div>
-      
+
       <div className="mb-6">
         <p className="block text-sm font-medium text-white/80 mb-3">
           When do you usually listen to music? (Select all that apply)
         </p>
-        
+
         <div className="space-y-3">
           <label className="flex items-center">
             <input
@@ -69,7 +69,7 @@ const ListeningHabitsStep: React.FC<ListeningHabitsStepProps> = ({ formData, upd
             />
             <span className="ml-3 text-white">Morning</span>
           </label>
-          
+
           <label className="flex items-center">
             <input
               type="checkbox"
@@ -80,7 +80,7 @@ const ListeningHabitsStep: React.FC<ListeningHabitsStepProps> = ({ formData, upd
             />
             <span className="ml-3 text-white">Evening</span>
           </label>
-          
+
           <label className="flex items-center">
             <input
               type="checkbox"
@@ -91,7 +91,7 @@ const ListeningHabitsStep: React.FC<ListeningHabitsStepProps> = ({ formData, upd
             />
             <span className="ml-3 text-white">During workouts</span>
           </label>
-          
+
           <label className="flex items-center">
             <input
               type="checkbox"
@@ -102,7 +102,7 @@ const ListeningHabitsStep: React.FC<ListeningHabitsStepProps> = ({ formData, upd
             />
             <span className="ml-3 text-white">While working/studying</span>
           </label>
-          
+
           <label className="flex items-center">
             <input
               type="checkbox"

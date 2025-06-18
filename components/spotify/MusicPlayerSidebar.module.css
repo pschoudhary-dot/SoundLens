@@ -1,0 +1,79 @@
+.progressBar {
+  width: 100%;
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.volumeSlider {
+  width: 100%;
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  appearance: none;
+  cursor: pointer;
+}
+
+/* Custom styles for range inputs */
+.progressBar::-webkit-slider-runnable-track,
+.volumeSlider::-webkit-slider-runnable-track {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  height: 2px;
+}
+
+.progressBar::-moz-range-track,
+.volumeSlider::-moz-range-track {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  height: 2px;
+}
+
+/* Thumb styles */
+.progressBar::-webkit-slider-thumb,
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -6px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  height: 14px;
+  width: 14px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.progressBar::-moz-range-thumb,
+.volumeSlider::-moz-range-thumb {
+  border: none;
+  background-color: #22c55e;
+  border-radius: 50%;
+  height: 14px;
+  width: 14px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+/* Show thumb on hover */
+.progressBar:hover::-webkit-slider-thumb,
+.volumeSlider:hover::-webkit-slider-thumb {
+  opacity: 1;
+}
+
+.progressBar:hover::-moz-range-thumb,
+.volumeSlider:hover::-moz-range-thumb {
+  opacity: 1;
+}
+
+/* Active thumb */
+.progressBar:active::-webkit-slider-thumb,
+.volumeSlider:active::-webkit-slider-thumb {
+  opacity: 1;
+}
+
+.progressBar:active::-moz-range-thumb,
+.volumeSlider:active::-moz-range-thumb {
+  opacity: 1;
+}

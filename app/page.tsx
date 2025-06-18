@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import ButtonWithSpinner from '@/components/ui/ButtonWithSpinner';
+import SpotifyLoginButton from '@/components/auth/SpotifyLoginButton';
+import AuthStatus from '@/components/auth/AuthStatus';
 import {
   Music,
   ChevronRight,
@@ -28,6 +30,49 @@ export default function Home() {
   const heroContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Check if user is already logged in
+    const checkAuthStatus = () => {
+      const token = localStorage.getItem('soundlens_token');
+      const userData = localStorage.getItem('soundlens_user');
+      const expiryStr = localStorage.getItem('soundlens_session_expiry');
+
+      if (token && userData) {
+        // Check if token is expired
+        if (expiryStr) {
+          const expiryDate = new Date(expiryStr);
+          const now = new Date();
+
+          if (now > expiryDate) {
+            console.log('Token expired, clearing session');
+            // Token expired, clear it
+            localStorage.removeItem('soundlens_token');
+            localStorage.removeItem('soundlens_user');
+            localStorage.removeItem('soundlens_session_expiry');
+            return; // Don't redirect if token is expired
+          }
+        }
+
+        try {
+          // Parse user data to check if Spotify is connected
+          const user = JSON.parse(userData);
+
+          // If user has Spotify connected, redirect to dashboard
+          if (user.spotifyConnected) {
+            router.push('/dashboard');
+          } else {
+            // If user is logged in but Spotify not connected, redirect to connect services
+            router.push('/connect-services');
+          }
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    };
+
+    // Check auth status on page load
+    checkAuthStatus();
+
+    // Set up scroll handler for animations
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setIsScrolled(scrollY > 10);
@@ -45,7 +90,7 @@ export default function Home() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [router]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#e6f4ff] via-[#c9e6ff] to-[#a3d8ff] relative overflow-hidden">
@@ -98,17 +143,13 @@ export default function Home() {
           </Link>
 
           <div className="flex items-center space-x-4">
-            <Link href="/login" className="text-white hover:text-black transition-colors text-sm font-medium">
+            <AuthStatus />
+            <Link href="/login" className="text-white hover:text-white/80 transition-colors text-sm font-medium">
               Log In
             </Link>
-            <ButtonWithSpinner
-              href="/signup"
-              size="sm"
-              className="px-4 py-1.5 bg-[#22c55e] hover:bg-[#16a34a] text-white text-sm shadow-sm relative overflow-hidden group"
-            >
-              <span className="relative z-10">Sign Up</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-[#22c55e] to-[#16a34a] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            </ButtonWithSpinner>
+            <Link href="/signup" className="px-4 py-1.5 bg-[#22c55e] hover:bg-[#16a34a] text-white text-sm font-medium rounded-md shadow-sm">
+              Sign Up
+            </Link>
           </div>
         </div>
       </header>
@@ -184,14 +225,13 @@ export default function Home() {
                   >
                     Get Started <ChevronRight size={18} className="ml-2" />
                   </ButtonWithSpinner>
-                  <ButtonWithSpinner
-                    href="/login"
+                  <SpotifyLoginButton
                     size="lg"
                     variant="outline"
                     className="w-full sm:w-auto px-8 py-3 text-base border border-[#3b82f6] text-[#3b82f6] hover:bg-[#3b82f6]/5 rounded-md"
                   >
                     Login with Spotify
-                  </ButtonWithSpinner>
+                  </SpotifyLoginButton>
                 </div>
               </div>
             </div>
@@ -460,14 +500,13 @@ export default function Home() {
             >
               Get Started <ChevronRight size={18} className="ml-2" />
             </ButtonWithSpinner>
-            <ButtonWithSpinner
-              href="/login"
+            <SpotifyLoginButton
               size="lg"
               variant="outline"
               className="px-8 py-3 text-base border border-[#3b82f6] text-[#3b82f6] hover:bg-[#3b82f6]/5"
             >
               Login with Spotify
-            </ButtonWithSpinner>
+            </SpotifyLoginButton>
           </div>
         </div>
       </section>

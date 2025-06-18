@@ -13,7 +13,7 @@ interface MusicPreferencesStepProps {
     favoriteArtists: string[];
     preferredPlatform: string;
   };
-  updateFormData: (data: Partial<typeof formData>) => void;
+  updateFormData: (data: Partial<MusicPreferencesStepProps['formData']>) => void;
 }
 
 const genres = [
@@ -149,6 +149,8 @@ const MusicPreferencesStep: React.FC<MusicPreferencesStepProps> = ({ formData, u
                   type="button"
                   onClick={() => handleRemoveArtist(artist)}
                   className="ml-1 text-white/60 hover:text-white"
+                  title={`Remove ${artist}`}
+                  aria-label={`Remove ${artist}`}
                 >
                   <X className="h-3 w-3" />
                 </button>

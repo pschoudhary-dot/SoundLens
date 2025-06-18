@@ -30,7 +30,7 @@ interface PersonalInfoStepProps {
     gender: string;
     location: string;
   };
-  updateFormData: (data: Partial<typeof formData>) => void;
+  updateFormData: (data: Partial<PersonalInfoStepProps['formData']>) => void;
 }
 
 const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, updateFormData }) => {
@@ -87,7 +87,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, updateFor
               onSelect={handleDateChange}
               initialFocus
               className="bg-gray-800 text-white"
-              captionLayout="dropdown-buttons"
+              captionLayout="dropdown"
               fromYear={1940}
               toYear={new Date().getFullYear()}
             />

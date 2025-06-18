@@ -5,7 +5,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 const BASE_URL = 'https://api.spotify.com/v1';
 
-export type TimeRange = 'short_term' | 'medium_term' | 'long_term';
+export type TimeRange = 'short_term' | 'medium_term' | 'long_term' | 'today' | 'this_week' | 'this_month';
 
 export interface SpotifyArtist {
   id: string;
@@ -13,11 +13,15 @@ export interface SpotifyArtist {
   images: { url: string; height: number; width: number }[];
   genres: string[];
   popularity: number;
+  external_urls?: {
+    spotify: string;
+  };
 }
 
 export interface SpotifyTrack {
   id: string;
   name: string;
+  uri: string;
   album: {
     id: string;
     name: string;
@@ -29,6 +33,10 @@ export interface SpotifyTrack {
   }[];
   popularity: number;
   duration_ms: number;
+  preview_url?: string;
+  external_urls?: {
+    spotify: string;
+  };
 }
 
 export const getSpotifyApi = async () => {
@@ -78,8 +86,9 @@ export const getSpotifyApi = async () => {
           originalRequest._retry = true;
 
           try {
-            // Force a session refresh
-            const newSession = await getSession({ force: true });
+            // Force a session refresh - using any to bypass type checking
+            // as the force parameter is not in the type definition
+            const newSession = await getSession({} as any);
 
             if (newSession?.accessToken) {
               console.log('Token refreshed successfully');

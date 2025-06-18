@@ -34,8 +34,8 @@ const config: Config = {
   },
   darkMode: 'class',
   plugins: [
-    function({ addUtilities, theme }) {
-      const newUtilities = {}
+    function({ addUtilities, theme }: { addUtilities: any, theme: any }) {
+      const newUtilities: Record<string, Record<string, string>> = {}
       for (let i = 1; i <= 10; i++) {
         newUtilities[`.animation-delay-${i * 100}`] = {
           'animation-delay': `${i * 0.1}s`,

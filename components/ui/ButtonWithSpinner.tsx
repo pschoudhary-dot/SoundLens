@@ -8,7 +8,7 @@ interface ButtonWithSpinnerProps {
   children: React.ReactNode;
   href?: string;
   onClick?: () => void;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   disabled?: boolean;
@@ -27,19 +27,19 @@ const ButtonWithSpinner: React.FC<ButtonWithSpinnerProps> = ({
 }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const handleClick = () => {
     if (disabled || isLoading) return;
-    
+
     setIsLoading(true);
-    
+
     if (href) {
       router.push(href);
     } else if (onClick) {
       onClick();
     }
   };
-  
+
   return (
     <Button
       type={type}

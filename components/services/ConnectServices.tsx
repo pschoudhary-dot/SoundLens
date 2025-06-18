@@ -52,8 +52,42 @@ const ConnectServices: React.FC = () => {
   }, []);
 
   const handleConnectSpotify = () => {
-    // Fall back to using the NextAuth endpoint if client ID is not available
-    router.push('/api/auth/signin/spotify');
+    // Check if Spotify is already connected
+    const userData = localStorage.getItem('soundlens_user');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        if (parsedUser.spotifyConnected) {
+          // If already connected, just go to dashboard
+          router.push('/dashboard');
+          return;
+        }
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+
+    // Store current user info in sessionStorage for retrieval after OAuth flow
+    if (user) {
+      sessionStorage.setItem('soundlens_connecting_user', JSON.stringify(user));
+
+      // Store the token in sessionStorage for the callback to use
+      const token = localStorage.getItem('soundlens_token');
+      if (token) {
+        sessionStorage.setItem('soundlens_token', token);
+
+        // Also set a cookie with the token to ensure it's available to the server
+        document.cookie = `soundlens_token=${token}; path=/; max-age=3600; SameSite=Strict`;
+      }
+
+      // Store the user ID in a cookie to help with user identification during callback
+      if (user._id) {
+        document.cookie = `soundlens_user_id=${user._id}; path=/; max-age=3600; SameSite=Strict`;
+      }
+    }
+
+    // Use our custom Spotify auth endpoint that will handle the port correctly
+    router.push('/api/spotify/auth');
   };
 
   const handleConnectYouTube = () => {

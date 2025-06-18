@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Button from '@/components/ui/Button';
+import SpotifyLoginButton from './SpotifyLoginButton';
 
 const LoginForm: React.FC = () => {
   const router = useRouter();
@@ -36,10 +37,14 @@ const LoginForm: React.FC = () => {
     setIsLoading(true);
 
     try {
+      console.log('Submitting login form with:', { email: formData.email });
+
       const response = await axios.post('/api/auth/login', {
         email: formData.email,
         password: formData.password,
       });
+
+      console.log('Login response:', response.data);
 
       if (response.data.token) {
         // Set expiration date if rememberMe is checked (30 days)
@@ -47,24 +52,52 @@ const LoginForm: React.FC = () => {
           ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
           : null;
 
-        // Save token and user data to localStorage
-        localStorage.setItem('soundlens_token', response.data.token);
-        localStorage.setItem('soundlens_user', JSON.stringify(response.data.user));
+        try {
+          // Save token and user data to localStorage
+          localStorage.setItem('soundlens_token', response.data.token);
+          localStorage.setItem('soundlens_user', JSON.stringify(response.data.user));
 
-        // Save expiration date if rememberMe is checked
-        if (expirationDate) {
-          localStorage.setItem('soundlens_session_expiry', expirationDate);
-
-          // Set a cookie for persistent login (30 days)
-          document.cookie = `soundlens_session=${response.data.token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Strict`;
+          // Save expiration date if rememberMe is checked
+          if (expirationDate) {
+            localStorage.setItem('soundlens_session_expiry', expirationDate);
+          }
+        } catch (storageError) {
+          console.error('Error saving to localStorage:', storageError);
+          // Continue even if localStorage fails
         }
 
-        // Use window.location for a hard redirect instead of router.push
-        if (response.data.user.spotifyConnected || response.data.user.youtubeConnected) {
-          window.location.href = '/dashboard';
-        } else {
-          window.location.href = '/connect-services';
+        // Always set a cookie for the token (needed for middleware)
+        try {
+          const maxAge = formData.rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60; // 30 days or 1 day
+          document.cookie = `soundlens_token=${response.data.token}; path=/; max-age=${maxAge}; SameSite=Strict`;
+        } catch (cookieError) {
+          console.error('Error setting cookie:', cookieError);
+          // Continue even if cookie setting fails
         }
+
+        console.log('Authentication successful, redirecting...');
+
+        // Determine redirect destination
+        const redirectTo = response.data.user.spotifyConnected || response.data.user.youtubeConnected
+          ? '/dashboard'
+          : '/connect-services';
+
+        // Use a simpler approach with a fallback
+        try {
+          // First try Next.js router
+          router.push(redirectTo);
+
+          // Set a fallback with window.location after a short delay
+          setTimeout(() => {
+            window.location.href = redirectTo;
+          }, 500);
+        } catch (navigationError) {
+          console.error('Navigation error:', navigationError);
+          // Direct fallback to window.location
+          window.location.href = redirectTo;
+        }
+      } else {
+        setError('Invalid response from server');
       }
     } catch (err: any) {
       console.error('Login error:', err);
@@ -131,7 +164,7 @@ const LoginForm: React.FC = () => {
 
         <Button
           type="submit"
-          className="w-full py-3"
+          className="w-full py-3 mb-3"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -146,6 +179,17 @@ const LoginForm: React.FC = () => {
             'Log In'
           )}
         </Button>
+
+        <div className="relative my-4 flex items-center justify-center">
+          <div className="absolute border-t border-white/10 w-full"></div>
+          <span className="relative bg-gray-900 px-2 text-sm text-white/50">OR</span>
+        </div>
+
+        <SpotifyLoginButton
+          className="w-full py-3 bg-[#1DB954] hover:bg-[#1AA34A] text-white"
+        >
+          Login with Spotify
+        </SpotifyLoginButton>
 
         <div className="mt-4 text-center">
           <p className="text-white/60 text-sm">

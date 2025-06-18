@@ -29,6 +29,7 @@ body {
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px; /* For horizontal scrollbars */
 }
 
 ::-webkit-scrollbar-track {
@@ -42,6 +43,12 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
+}
+
+/* Smooth scrolling for horizontal scroll containers */
+.overflow-x-auto {
+  scroll-behavior: smooth;
+  padding-bottom: 8px; /* Add space for the scrollbar */
 }
 
 /* Text gradient */
@@ -121,14 +128,14 @@ body {
 /* Glassmorphism */
 .glass {
   background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .glass-dark {
   background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }

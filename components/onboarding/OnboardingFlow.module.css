@@ -1,0 +1,21 @@
+.progressBarFill {
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: width 0.3s ease-in-out;
+}
+
+.step1 {
+  width: 25%;
+}
+
+.step2 {
+  width: 50%;
+}
+
+.step3 {
+  width: 75%;
+}
+
+.step4 {
+  width: 100%;
+}

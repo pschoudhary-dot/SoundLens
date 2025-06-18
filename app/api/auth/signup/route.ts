@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
+import jwt from 'jsonwebtoken';
 
 export async function POST(request: NextRequest) {
   try {
     await dbConnect();
-    
+
     const body = await request.json();
     const { email, password, name } = body;
-    
+
     // Basic validation
     if (!email || !password || !name) {
       return NextResponse.json(
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       );
     }
-    
+
     // Create new user
     const user = new User({
       email,
@@ -33,9 +34,16 @@ export async function POST(request: NextRequest) {
       name,
       // Other fields will be updated during the onboarding process
     });
-    
+
     await user.save();
-    
+
+    // Create JWT token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || 'your-default-secret-do-not-use-in-production',
+      { expiresIn: '7d' }
+    );
+
     // Return success but don't include password
     const userResponse = {
       _id: user._id,
@@ -43,8 +51,8 @@ export async function POST(request: NextRequest) {
       name: user.name,
       createdAt: user.createdAt
     };
-    
-    return NextResponse.json({ user: userResponse }, { status: 201 });
+
+    return NextResponse.json({ user: userResponse, token }, { status: 201 });
   } catch (error: any) {
     console.error('Error in signup:', error);
     return NextResponse.json(

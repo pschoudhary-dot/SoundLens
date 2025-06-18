@@ -35,6 +35,15 @@ export interface IUser extends Document {
   spotifyId?: string;
   youtubeId?: string;
 
+  // Authentication tokens
+  spotifyAccessToken?: string;
+  spotifyRefreshToken?: string;
+  spotifyTokenExpiry?: number;
+
+  // Session management
+  lastLogin?: Date;
+  loginCount?: number;
+
   // Account info
   createdAt: Date;
   updatedAt: Date;
@@ -76,6 +85,15 @@ const UserSchema: Schema = new Schema({
   youtubeConnected: { type: Boolean, default: false },
   spotifyId: { type: String },
   youtubeId: { type: String },
+
+  // Authentication tokens
+  spotifyAccessToken: { type: String },
+  spotifyRefreshToken: { type: String },
+  spotifyTokenExpiry: { type: Number },
+
+  // Session management
+  lastLogin: { type: Date },
+  loginCount: { type: Number, default: 0 },
 
   // Account info
   createdAt: { type: Date, default: Date.now },

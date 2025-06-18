@@ -10,6 +10,15 @@ const scopes = [
   'user-read-private',
   'user-top-read',
   'user-read-recently-played',
+  'user-read-playback-state',
+  'user-modify-playback-state',
+  'playlist-read-private',
+  'playlist-read-collaborative',
+  'user-library-read',
+  'user-read-currently-playing',
+  'user-follow-read',
+  'user-read-playback-position',
+  'streaming', // Required for Web Playback SDK
 ].join(' ');
 
 // Log environment variables for debugging
@@ -50,7 +59,8 @@ if (process.env.SPOTIFY_REDIRECT_URI) {
   console.error('❌ SPOTIFY_REDIRECT_URI is not set');
 }
 
-export const authOptions: NextAuthOptions = {
+// Define authOptions but don't export it directly
+const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
   providers: [
     SpotifyProvider({
@@ -341,3 +351,6 @@ async function refreshAccessToken(token: any) {
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
+
+// Export authOptions for use in other files, but in a way that doesn't conflict with Next.js route exports
+export { authOptions };
