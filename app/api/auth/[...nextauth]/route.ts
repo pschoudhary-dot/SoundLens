@@ -182,22 +182,29 @@ const authOptions: NextAuthOptions = {
             ...token,
             accessToken: account.access_token,
             refreshToken: account.refresh_token,
-            accessTokenExpires: account.expires_at ? account.expires_at * 1000 : 0,
+            accessTokenExpires: account.expires_at ? account.expires_at * 1000 : 0, // account.expires_at is in seconds
             provider: account.provider
           };
-
+          console.log(`🔑 Initial token setup: account.expires_at=${account.expires_at}, calculated accessTokenExpires=${newToken.accessTokenExpires} (ms)`);
           console.log('🔑 New token created with keys:', Object.keys(newToken));
           return newToken;
         }
 
         // Return previous token if the access token has not expired yet
-        if (token.accessTokenExpires && Date.now() < (token.accessTokenExpires as number)) {
-          console.log('🔑 Using existing token (not expired)');
+        const bufferMilliseconds = 5 * 60 * 1000; // 5 minutes buffer
+        const shouldRefresh = token.accessTokenExpires && Date.now() >= ((token.accessTokenExpires as number) - bufferMilliseconds);
+
+        if (token.accessTokenExpires && !shouldRefresh) {
+          console.log(`🔑 Token still valid. Current time: ${Date.now()}, Expiry: ${token.accessTokenExpires}, Buffer: ${bufferMilliseconds}ms. Using existing token.`);
           return token;
         }
 
-        // Access token has expired, try to update it
-        console.log('🔄 Token expired, attempting to refresh');
+        if (shouldRefresh) {
+          console.log(`🔄 Token expired or within refresh buffer. Current time: ${Date.now()}, Original Expiry: ${token.accessTokenExpires}. Attempting refresh.`);
+        } else {
+          // This case should ideally not be hit if token.accessTokenExpires is always set.
+          console.log('🔄 Access token expiry not set or condition met, attempting to refresh.');
+        }
         return refreshAccessToken(token);
       } catch (error) {
         console.error('❌ ERROR in JWT callback:', error);
@@ -322,18 +329,29 @@ async function refreshAccessToken(token: any) {
     }
 
     const refreshedTokens = await response.json();
-    console.log('✅ Successfully refreshed access token');
-    console.log('🔑 New token expires in:', refreshedTokens.expires_in, 'seconds');
+    console.log('✅ Successfully refreshed access token from Spotify.');
+    console.log('🔑 New token expires in (from Spotify):', refreshedTokens.expires_in, 'seconds');
 
-    // Check if we got a new refresh token
-    const gotNewRefreshToken = !!refreshedTokens.refresh_token;
-    console.log('🔑 Received new refresh token:', gotNewRefreshToken);
+    const newAccessTokenExpires = Date.now() + refreshedTokens.expires_in * 1000;
+    const oldRefreshToken = token.refreshToken;
+    const newRefreshToken = refreshedTokens.refresh_token;
+
+    if (newRefreshToken && newRefreshToken !== oldRefreshToken) {
+      console.log('🔄 Spotify issued a new refresh token.');
+    } else if (newRefreshToken) {
+      console.log('🔑 Spotify returned the same refresh token.');
+    } else {
+      console.log('⚠️ Spotify did not return a new refresh token. Continuing with the old one.');
+    }
+
+    console.log(`✨ New access token received. New expiry: ${newAccessTokenExpires}`);
 
     return {
       ...token,
       accessToken: refreshedTokens.access_token,
-      accessTokenExpires: Date.now() + refreshedTokens.expires_in * 1000,
-      refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
+      accessTokenExpires: newAccessTokenExpires,
+      refreshToken: newRefreshToken ?? oldRefreshToken, // Fall back to old refresh token if new one isn't provided
+      error: null, // Clear any previous error
     };
   } catch (error) {
     console.error('❌ ERROR refreshing access token:', error);

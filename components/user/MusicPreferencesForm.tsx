@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Button from "../ui/Button";
+import Button from "../ui/Button"; // Assuming this is the base button, not ButtonWithSpinner
 import { Input } from "../ui/input";
 import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -64,6 +64,7 @@ export default function MusicPreferencesForm({ onSubmit, currentStep }: MusicPre
   const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
   const [artistSearch, setArtistSearch] = useState<string>('');
   const [platform, setPlatform] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filter artists based on search
   const filteredArtists = popularArtists.filter(artist =>
@@ -89,11 +90,28 @@ export default function MusicPreferencesForm({ onSubmit, currentStep }: MusicPre
     setSelectedArtists(selectedArtists.filter(a => a !== artist));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      birthdate: date,
-      country,
+    setIsSubmitting(true);
+    try {
+      await onSubmit({ // Assuming onSubmit might be async and return a Promise
+        birthdate: date,
+        country,
+        language,
+        genres: selectedGenres,
+        artists: selectedArtists,
+        platform
+      });
+      // Optionally, handle success feedback here if needed, or parent handles it
+    } catch (error) {
+      console.error("Error submitting music preferences:", error);
+      // Optionally, set a local error state to display to the user
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
       language,
       genres: selectedGenres,
       artists: selectedArtists,
@@ -292,8 +310,19 @@ export default function MusicPreferencesForm({ onSubmit, currentStep }: MusicPre
               <Button
                 type="submit"
                 className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white"
+                disabled={isSubmitting}
               >
-                Continue
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Submitting...
+                  </span>
+                ) : (
+                  'Continue'
+                )}
               </Button>
             </form>
           </div>
